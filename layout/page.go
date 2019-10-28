@@ -3,6 +3,7 @@ package layout
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -11,9 +12,9 @@ import (
 	"github.com/xitongsys/parquet-go/common"
 	"github.com/xitongsys/parquet-go/compress"
 	"github.com/xitongsys/parquet-go/encoding"
-	"github.com/xitongsys/parquet-go/types"
-	"github.com/xitongsys/parquet-go/schema"
 	"github.com/xitongsys/parquet-go/parquet"
+	"github.com/xitongsys/parquet-go/schema"
+	"github.com/xitongsys/parquet-go/types"
 )
 
 //Page is used to store the page data
@@ -67,7 +68,22 @@ func NewDataPage() *Page {
 }
 
 //Convert a table to data pages
-func TableToDataPages(table *Table, pageSize int32, compressType parquet.CompressionCodec) ([]*Page, int64) {
+func TableToDataPages(name string, table *Table, pageSize int32, compressType parquet.CompressionCodec) ([]*Page, int64) {
+	defer func() {
+		if r := recover(); r != nil {
+			var err error
+			switch x := r.(type) {
+			case string:
+				err = errors.New(x)
+			case error:
+				err = x
+			default:
+				err = errors.New("unknown error")
+			}
+			panic(fmt.Errorf("%s: %s", name, err))
+		}
+	}()
+
 	var totSize int64 = 0
 	totalLn := len(table.Values)
 	res := make([]*Page, 0)
@@ -607,7 +623,7 @@ func ReadDataPageValues(bytesReader *bytes.Reader, encodingMethod parquet.Encodi
 	var (
 		res []interface{}
 	)
-	if cnt <= 0{
+	if cnt <= 0 {
 		return res, nil
 	}
 

@@ -226,7 +226,7 @@ func (self *ParquetWriter) flushObjs() error {
 						lock.Unlock()
 
 					} else {
-						pagesMapList[index][name], _ = layout.TableToDataPages(table, int32(self.PageSize),
+						pagesMapList[index][name], _ = layout.TableToDataPages(name, table, int32(self.PageSize),
 							self.CompressionType)
 					}
 				}
